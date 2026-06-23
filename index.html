@@ -9,7 +9,8 @@
 </head>
 <body>
 <header>
-  <h1>薪資差異分析 <span class="sub">月對月．為什麼人數少了總額卻增加</span></h1>
+  <h1>薪資差異分析</h1>
+  <p class="sub">為什麼這個月人數少了，總額卻增加？一鍵看懂。</p>
 </header>
 
 <section class="panel" id="loadPanel">
@@ -23,32 +24,51 @@
     <label>上月 <select id="prevSheet"></select></label>
     <label>本月匯率 <input type="number" step="0.0001" id="curRate"></label>
     <label>上月匯率 <input type="number" step="0.0001" id="prevRate"></label>
-    <label class="chk"><input type="checkbox" id="useAssumed" checked> 本月用上月匯率重算（你目前的做法）</label>
-    <button id="run">分析</button>
+    <button id="run">開始分析</button>
   </div>
 </section>
 
 <main id="result" class="hidden">
-  <p class="verdict" id="verdict"></p>
 
-  <div class="cards">
-    <div class="card"><div class="k">人數</div><div class="v" id="cHead"></div></div>
-    <div class="card"><div class="k">總額（顯示口徑）</div><div class="v" id="cTotal"></div></div>
-    <div class="card"><div class="k">差額</div><div class="v" id="cDiff"></div></div>
+  <!-- 兩個大數字 -->
+  <div class="bigcards">
+    <div class="bigcard">
+      <div class="bk">人數</div>
+      <div class="bv" id="cHead"></div>
+      <div class="bd" id="cHeadD"></div>
+    </div>
+    <div class="bigcard">
+      <div class="bk">總額（PHP 披索）</div>
+      <div class="bv" id="cTotal"></div>
+      <div class="bd" id="cTotalD"></div>
+    </div>
   </div>
 
-  <h2>差異瀑布｜上月總額 → 本月總額</h2>
-  <p class="note" id="bridgeNote"></p>
-  <div id="waterfall" class="waterfall"></div>
+  <!-- 結論：條列 + 長條 -->
+  <section class="conclude">
+    <h2>📊 結論：總額為什麼變了</h2>
+    <p class="lead" id="lead"></p>
+    <ul class="drivers" id="drivers"></ul>
+    <p class="foot" id="driverFoot"></p>
+  </section>
 
-  <h2>實發（RMB 部分）變化拆解 <span class="sub2">已用上月匯率換算，排除匯率干擾</span></h2>
-  <table class="tbl" id="rmbBreak"></table>
+  <!-- 部門變動最大 -->
+  <h2>🏢 哪些部門變動最大</h2>
+  <div class="deptbars" id="deptBars"></div>
+  <details class="more">
+    <summary>展開完整事業群／事業部明細表</summary>
+    <table class="tbl" id="groupTbl"></table>
+  </details>
 
-  <h2>各事業群／事業部</h2>
-  <p class="note">點事業群可展開事業部。差額已拆成「匯率」與「真實（人/薪/獎金）」兩塊。</p>
-  <table class="tbl" id="groupTbl"></table>
+  <!-- 完整瀑布（折疊） -->
+  <details class="more">
+    <summary>展開完整對帳瀑布（上月 → 本月，每段相加剛好對上）</summary>
+    <div id="waterfall" class="waterfall"></div>
+    <p class="note" id="bridgeNote"></p>
+  </details>
 
-  <h2>名單</h2>
+  <!-- 名單 -->
+  <h2>👥 人員異動名單</h2>
   <div class="rosters">
     <div>
       <h3 id="joinTitle">本月新進</h3>

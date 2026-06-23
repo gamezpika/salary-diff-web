@@ -88,13 +88,10 @@ function run(){
   const cur = SHEETS[$('#curSheet').value], prev = SHEETS[$('#prevSheet').value];
   const curYM = String(cur[0][COL.ym]);
   const rC = +$('#curRate').value, rP = +$('#prevRate').value;
-  const useAssumed = $('#useAssumed').checked;
 
   // 各月實發PHP（真實匯率）
   const phpPrev = sum(prev, COL.php);
   const phpCurReal = sum(cur, COL.php);
-  // 本月用上月匯率重算（你的做法）：RMB部分改用 rP
-  const phpCurAssumed = sum(cur, COL.rmbNet)*rP + sum(cur, COL.pesoAdd) - sum(cur, COL.pesoDed);
 
   // 瀑布橋（一律從上月真實 → 本月真實，匯率效應獨立一段）
   const rateEff = sum(cur, COL.rmbNet) * (rC - rP);
@@ -129,8 +126,8 @@ function run(){
 
   render({
     headPrev: prev.length, headCur: cur.length,
-    phpPrev, phpCurReal, phpCurAssumed, useAssumed,
-    rateEff, bridge, rmbBreak, joins, leaves, groups, curYM,
+    phpPrev, phpCurReal,
+    rateEff, dPesoAdd, dPesoDed, bridge, rmbBreak, joins, leaves, groups, curYM,
   });
 }
 
@@ -161,50 +158,96 @@ function buildGroups(prev, cur, rP, rC){
   }).sort((a,b)=>Math.abs(b.totalDiff)-Math.abs(a.totalDiff));
 }
 
+// 驅動因素白話說明
+const WHY = {
+  '底薪':'底薪調整（加薪・到職滿月）',
+  '獎金分紅':'提成・分紅・年終獎（13/14薪）',
+  '加班值班':'加班費・值班・假日加班',
+  '補發補助':'補發・機票／宿舍補助・特殊津貼',
+  '扣款':'出勤扣款（遲到・事假・曠工）',
+  '其他':'未分類差額',
+};
+
 // ---- 畫面 ----
 function render(d){
   $('#result').classList.remove('hidden');
   const headDiff = d.headCur - d.headPrev;
-  const totalShown = d.useAssumed ? d.phpCurAssumed : d.phpCurReal;
-  const totalDiff = totalShown - d.phpPrev;
+  const totalRealDiff = d.phpCurReal - d.phpPrev;          // 真實總差（用各月真匯率）
+  const rP = $('#prevRate').value, rC = $('#curRate').value;
 
-  $('#cHead').innerHTML = `${d.headPrev} → ${d.headCur} <span class="${cls(headDiff)}">(${signed(headDiff)})</span>`;
-  $('#cTotal').innerHTML = `${fmt(d.phpPrev)} → ${fmt(totalShown)}`
-    + (d.useAssumed ? ` <span class="note">＊本月用上月匯率重算</span>` : '');
-  $('#cDiff').innerHTML = `<span class="${cls(totalDiff)}">${signed(totalDiff)}</span> PHP`;
+  // 大數字
+  $('#cHead').textContent = `${d.headPrev} → ${d.headCur}`;
+  $('#cHeadD').innerHTML = `<span class="${cls(headDiff)}">${headDiff>=0?'▲':'▼'} ${signed(headDiff)} 人</span>`;
+  $('#cTotal').textContent = `${fmt(d.phpPrev)} → ${fmt(d.phpCurReal)}`;
+  $('#cTotalD').innerHTML = `<span class="${cls(totalRealDiff)}">${totalRealDiff>=0?'▲':'▼'} ${signed(totalRealDiff)} PHP</span>`;
 
-  // 一句話結論
-  const realDiff = d.phpCurReal - d.phpPrev - d.rateEff;
-  const bonusDelta = d.rmbBreak.find(x=>x.name==='獎金分紅')?.delta || 0;
-  const parts = [];
-  parts.push(`人數 ${signed(headDiff)} 人`);
-  parts.push(`總額 ${signed(d.phpCurReal - d.phpPrev)} PHP`);
-  const drivers = [];
-  if (Math.abs(d.rateEff) > 50000) drivers.push(`匯率 ${signed(d.rateEff)}`);
-  if (Math.abs(bonusDelta) > 50000) drivers.push(`獎金分紅 ${signed(bonusDelta)}`);
-  if (Math.abs(realDiff - bonusDelta) > 100000) drivers.push(`其他薪資 ${signed(realDiff - bonusDelta)}`);
-  $('#verdict').innerHTML = `本月相對上月：${parts.join('、')}。主因 — ${drivers.join('；') || '各項變動皆不大'}。`
-    + (headDiff < 0 && (d.phpCurReal - d.phpPrev) > 0
-        ? `<br><b>「人數減少但總額增加」</b>：扣掉匯率後真實變化為 ${signed(realDiff)}，差額主要來自上述項目而非人頭。` : '');
+  // 統一的驅動因素清單（全部加起來 = 真實總差）
+  const drivers = [
+    { name:'匯率變動', why:`人民幣換披索匯率 ${rP} → ${rC}`, amount:d.rateEff },
+    ...d.rmbBreak.map(x => ({ name:x.name, why:WHY[x.name]||'', amount:x.delta })),
+    { name:'披索補貼', why:'房補・餐補・駐菲補貼等', amount:d.dPesoAdd },
+    { name:'披索扣款', why:'水電・房補超額等扣款', amount:d.dPesoDed },
+  ].filter(x => Math.abs(x.amount) >= 1)
+   .sort((a,b) => Math.abs(b.amount) - Math.abs(a.amount));
 
-  // 瀑布
-  renderWaterfall(d.bridge);
-  $('#bridgeNote').textContent =
-    `匯率：上月 ${$('#prevRate').value} → 本月 ${$('#curRate').value}。匯率效應 = 本月實發RMB × 匯率差，已單獨抽出；其餘各段一律以上月匯率計，故反映真實人/薪/獎金變動。`;
+  // 結論導言
+  const upTxt = totalRealDiff>=0 ? '增加' : '減少';
+  const headTxt = headDiff>0 ? `多了 ${headDiff} 人` : headDiff<0 ? `少了 ${-headDiff} 人` : '人數沒變';
+  let lead = `本月跟上月比：<b>${headTxt}</b>，但總額<b class="${cls(totalRealDiff)}">${upTxt}了 ${fmt(Math.abs(totalRealDiff))} 披索</b>。`;
+  if (headDiff < 0 && totalRealDiff > 0)
+    lead += `<br>「人少了、錢卻變多」的主因是下面排第一的項目 —— <b>${drivers[0].name}</b>，跟人頭數無關。`;
+  else if (drivers.length)
+    lead += `<br>最大的原因是 <b>${drivers[0].name}</b>（${signed(drivers[0].amount)} 披索）。`;
+  $('#lead').innerHTML = lead;
 
-  // RMB 拆解表
-  $('#rmbBreak').innerHTML =
-    '<tr><th>項目</th><th>差額(PHP)</th></tr>' +
-    d.rmbBreak.map(x => `<tr><td>${x.name}</td><td class="${cls(x.delta)}">${signed(x.delta)}</td></tr>`).join('');
+  renderDrivers(drivers);
+  $('#driverFoot').textContent = '＊以上每一項相加，剛好等於總額差。金額已換算成披索（PHP），方便直接比大小。';
 
-  // 事業群表
+  // 部門長條 + 完整表
+  renderDeptBars(d.groups);
   renderGroups(d.groups);
 
+  // 瀑布（折疊）
+  renderWaterfall(d.bridge);
+  $('#bridgeNote').textContent =
+    `匯率：上月 ${rP} → 本月 ${rC}。「匯率變動」= 本月實發RMB × 匯率差，單獨抽出；其餘各段一律以上月匯率計，反映真實人/薪/獎金變動。`;
+
   // 名單
-  $('#joinTitle').textContent = `本月新進（${d.joins.length} 人，合計 ${fmt(sum(d.joins,COL.php))} PHP）`;
+  $('#joinTitle').textContent = `本月新進（${d.joins.length} 人，合計 ${fmt(sum(d.joins,COL.php))} 披索）`;
   $('#leaveTitle').textContent = `本月離職／不享當月薪資（${d.leaves.length} 人）`;
   renderRoster('#joinTbl', d.joins);
   renderRoster('#leaveTbl', d.leaves);
+}
+
+function renderDrivers(drivers){
+  const max = Math.max(1, ...drivers.map(x => Math.abs(x.amount)));
+  $('#drivers').innerHTML = drivers.map((x, i) => {
+    const up = x.amount >= 0;
+    const w = Math.abs(x.amount) / max * 100;
+    const tag = i === 0 ? '<span class="tag">最大主因</span>' : '';
+    return `<li class="${up?'up':'down'}">
+      <span class="ico">${up?'🔺':'🔻'}</span>
+      <span class="dmain"><div class="dname">${x.name}${tag}</div><div class="dwhy">${x.why}</div></span>
+      <span class="dbar"><i style="width:${w}%;background:${up?'var(--up)':'var(--down)'}"></i></span>
+      <span class="damt">${signed(x.amount)}</span>
+    </li>`;
+  }).join('');
+}
+
+function renderDeptBars(groups){
+  const top = groups.slice(0, 8);
+  const max = Math.max(1, ...top.map(g => Math.abs(g.totalDiff)));
+  $('#deptBars').innerHTML = top.map(g => {
+    const up = g.totalDiff >= 0;
+    const w = Math.abs(g.totalDiff) / max * 48;
+    const left = up ? 50 : 50 - w;
+    const hd = g.headDiff === 0 ? '人數持平' : `人數 ${signed(g.headDiff)}`;
+    return `<div class="db-row">
+      <div class="db-name">${g.name} <small>${hd}</small></div>
+      <div class="db-track"><div class="db-fill" style="left:${left}%;width:${w}%;background:${up?'var(--up)':'var(--down)'}"></div></div>
+      <div class="db-amt ${cls(g.totalDiff)}">${signed(g.totalDiff)}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderWaterfall(bridge){

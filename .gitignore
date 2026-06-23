@@ -2,3 +2,8 @@
 .srv.log
 .test.mjs
 node_modules/
+
+# 機密薪資資料 — 絕不上傳到公開 repo / GitHub Pages
+data/
+*.xlsx
+*.xls
