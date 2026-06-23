@@ -256,7 +256,7 @@ function renderWaterfall(bridge){
   const html = bridge.map(b => {
     let bar;
     if (b.type==='start' || b.type==='end'){
-      bar = `<div class="wf-fill" style="left:0;width:${Math.abs(b.amount)/max*100}%;background:#3b466b"></div>`;
+      bar = `<div class="wf-fill" style="left:0;width:${Math.abs(b.amount)/max*100}%;background:#94a3c4"></div>`;
     } else {
       const w = Math.abs(b.amount)/flowMax*48;
       const left = b.amount>=0 ? 50 : 50-w;

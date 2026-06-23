@@ -1,11 +1,11 @@
 :root{
-  --bg:#0f1320; --panel:#171c2e; --panel2:#1b2236; --line:#2a3148;
-  --txt:#e8ecf6; --mut:#9aa6c4; --up:#34d399; --down:#fb7185;
-  --rate:#a78bfa; --accent:#f0abfc;
+  --bg:#f6f7fb; --panel:#ffffff; --panel2:#f1f3f9; --line:#e3e7f0;
+  --txt:#1f2533; --mut:#6b7488; --up:#15a34a; --down:#e11d48;
+  --rate:#7c3aed; --accent:#c026d3; --track:#eceef5;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
-  background:linear-gradient(160deg,#0f1320,#141a2e);color:var(--txt);line-height:1.5}
+  background:linear-gradient(160deg,#f7f8fc,#eef1f8);color:var(--txt);line-height:1.5}
 header{padding:22px 28px 16px;border-bottom:1px solid var(--line)}
 h1{margin:0;font-size:24px}
 header .sub{margin:6px 0 0;color:var(--mut);font-size:14px}
@@ -15,15 +15,15 @@ h3{margin:0 0 8px;font-size:14px}
 /* 載入 / 控制列 */
 .panel{margin:22px 28px}
 .drop{border:1.5px dashed var(--line);border-radius:14px;padding:30px;text-align:center;background:var(--panel);transition:.15s}
-.drop.over{border-color:var(--accent);background:#1b2138}
+.drop.over{border-color:var(--accent);background:var(--panel2)}
 .drop p{margin:6px 0}.hint{color:var(--mut);font-size:12px}
 .link{background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;text-decoration:underline}
 .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
 .controls label{font-size:13px;color:var(--mut);display:flex;flex-direction:column;gap:4px}
 .controls label.chk{flex-direction:row;align-items:center;gap:6px;color:var(--txt)}
-select,input[type=number]{background:#0e1322;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 9px;font-size:14px}
+select,input[type=number]{background:var(--track);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 9px;font-size:14px}
 input[type=number]{width:110px}
-button#run,button#pick{background:var(--accent);color:#1a1030;border:none;border-radius:9px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:14px}
+button#run,button#pick{background:var(--accent);color:#fff;border:none;border-radius:9px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:14px}
 .hidden{display:none!important}
 
 /* 兩個大數字 */
@@ -44,11 +44,11 @@ button#run,button#pick{background:var(--accent);color:#1a1030;border:none;border
 .drivers .dmain{min-width:0}
 .drivers .dname{font-weight:700;font-size:15px}
 .drivers .dwhy{color:var(--mut);font-size:12px}
-.drivers .dbar{position:relative;height:14px;background:#0e1322;border-radius:7px;overflow:hidden}
+.drivers .dbar{position:relative;height:14px;background:var(--track);border-radius:7px;overflow:hidden}
 .drivers .dbar i{position:absolute;top:0;height:100%;display:block;border-radius:7px}
 .drivers .damt{text-align:right;font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
 .drivers li.up .damt,.up{color:var(--up)}.drivers li.down .damt,.down{color:var(--down)}
-.tag{display:inline-block;font-size:11px;font-weight:700;color:#1a1030;background:var(--accent);border-radius:6px;padding:1px 7px;margin-left:8px;vertical-align:middle}
+.tag{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--accent);border-radius:6px;padding:1px 7px;margin-left:8px;vertical-align:middle}
 .foot{color:var(--mut);font-size:12px;margin:14px 0 2px}
 
 /* 部門長條（發散） */
@@ -56,7 +56,7 @@ button#run,button#pick{background:var(--accent);color:#1a1030;border:none;border
 .db-row{display:grid;grid-template-columns:170px 1fr 120px;align-items:center;gap:10px;font-size:13px}
 .db-name{text-align:right;color:var(--txt)}
 .db-name small{color:var(--mut);margin-left:4px}
-.db-track{position:relative;height:22px;background:#0e1322;border-radius:6px}
+.db-track{position:relative;height:22px;background:var(--track);border-radius:6px}
 .db-track::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
 .db-fill{position:absolute;top:0;height:100%;border-radius:6px}
 .db-amt{text-align:left;font-weight:700;font-variant-numeric:tabular-nums}
@@ -70,7 +70,7 @@ button#run,button#pick{background:var(--accent);color:#1a1030;border:none;border
 .waterfall{margin:14px 18px;display:flex;flex-direction:column;gap:6px}
 .wf-row{display:grid;grid-template-columns:150px 1fr 130px;align-items:center;gap:10px;font-size:13px}
 .wf-label{color:var(--mut);text-align:right}
-.wf-bar{position:relative;height:26px;background:#0e1322;border-radius:6px;overflow:hidden}
+.wf-bar{position:relative;height:26px;background:var(--track);border-radius:6px;overflow:hidden}
 .wf-fill{position:absolute;top:0;height:100%;border-radius:6px}
 .wf-amt{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
 .note{margin:4px 18px 14px;color:var(--mut);font-size:12px}
@@ -83,7 +83,7 @@ button#run,button#pick{background:var(--accent);color:#1a1030;border:none;border
 .tbl th{color:var(--mut);font-weight:600}
 .tbl.small{font-size:12px}
 .pos{color:var(--up)}.neg{color:var(--down)}
-.grp-row{cursor:pointer}.grp-row:hover td{background:#1b2138}
+.grp-row{cursor:pointer}.grp-row:hover td{background:var(--panel2)}
 .grp-row td:first-child::before{content:"▸ ";color:var(--mut)}
 .grp-row.open td:first-child::before{content:"▾ "}
 .sub-row{display:none}.sub-row.show{display:table-row}
