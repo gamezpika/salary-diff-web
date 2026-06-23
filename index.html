@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>薪資差異分析 · 月對月</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>薪資差異分析 <span class="sub">月對月．為什麼人數少了總額卻增加</span></h1>
+</header>
+
+<section class="panel" id="loadPanel">
+  <div class="drop" id="drop">
+    <input type="file" id="file" accept=".xlsx,.xls" hidden>
+    <p>把 <b>薪资.xlsx</b> 拖進來，或 <button class="link" id="pick">點此選檔</button></p>
+    <p class="hint">資料只在你的瀏覽器裡計算，不會上傳到任何伺服器。</p>
+  </div>
+  <div class="controls hidden" id="controls">
+    <label>本月 <select id="curSheet"></select></label>
+    <label>上月 <select id="prevSheet"></select></label>
+    <label>本月匯率 <input type="number" step="0.0001" id="curRate"></label>
+    <label>上月匯率 <input type="number" step="0.0001" id="prevRate"></label>
+    <label class="chk"><input type="checkbox" id="useAssumed" checked> 本月用上月匯率重算（你目前的做法）</label>
+    <button id="run">分析</button>
+  </div>
+</section>
+
+<main id="result" class="hidden">
+  <p class="verdict" id="verdict"></p>
+
+  <div class="cards">
+    <div class="card"><div class="k">人數</div><div class="v" id="cHead"></div></div>
+    <div class="card"><div class="k">總額（顯示口徑）</div><div class="v" id="cTotal"></div></div>
+    <div class="card"><div class="k">差額</div><div class="v" id="cDiff"></div></div>
+  </div>
+
+  <h2>差異瀑布｜上月總額 → 本月總額</h2>
+  <p class="note" id="bridgeNote"></p>
+  <div id="waterfall" class="waterfall"></div>
+
+  <h2>實發（RMB 部分）變化拆解 <span class="sub2">已用上月匯率換算，排除匯率干擾</span></h2>
+  <table class="tbl" id="rmbBreak"></table>
+
+  <h2>各事業群／事業部</h2>
+  <p class="note">點事業群可展開事業部。差額已拆成「匯率」與「真實（人/薪/獎金）」兩塊。</p>
+  <table class="tbl" id="groupTbl"></table>
+
+  <h2>名單</h2>
+  <div class="rosters">
+    <div>
+      <h3 id="joinTitle">本月新進</h3>
+      <table class="tbl small" id="joinTbl"></table>
+    </div>
+    <div>
+      <h3 id="leaveTitle">本月離職／不享當月薪資</h3>
+      <table class="tbl small" id="leaveTbl"></table>
+    </div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
